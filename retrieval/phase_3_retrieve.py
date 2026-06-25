@@ -41,6 +41,14 @@ RRF_K = 60
 PUNCT_RE = re.compile(r"[^\w\s]")
 KAZAKH_CHARS: set[str] = set("әіңғүұқөһ")
 
+# Kazakh words for reliable detection even when query lacks specific chars
+KAZAKH_WORDS: set[str] = {
+    "мемлекеті", "мемлекет", "хандығы", "қағанаты",
+    "жылы", "құрылды", "қашан", "қайда", "кім",
+    "билігі", "ханы", "батыры", "тарихы", "дәуірі"
+}
+
+
 SYNONYMS: dict[str, list[str]] = {
     "қағанат": ["мемлекет", "империя"],
     "хан": ["қаған", "билеуші"],
@@ -62,12 +70,17 @@ def _tokenize(text: str) -> list[str]:
 
 
 def _detect_lang(query: str) -> str:
-    """Detect Kazakh if >10% of characters are Kazakh-specific."""
+    """Detect Kazakh using word list first, then character ratio fallback."""
     total = len(query.strip())
     if total == 0:
         return "ru"
+    # Словарная проверка — надёжнее для смешанных запросов
+    tokens = set(query.lower().split())
+    if tokens & KAZAKH_WORDS:
+        return "kz"
+    # Символьный порог как fallback
     kz_count = sum(1 for c in query if c in KAZAKH_CHARS)
-    return "kz" if (kz_count / total) > 0.1 else "ru"
+    return "kz" if (kz_count / total) > 0.05 else "ru"
 
 
 def _classify_query(query: str) -> str:

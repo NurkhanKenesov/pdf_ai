@@ -29,9 +29,11 @@ MAX_CONTEXT_TOKENS = 8000
 CHARS_PER_TOKEN = 4.0
 
 SYSTEM_PROMPT = (
-    "Ты — ЕНТ тьютор. Отвечай только на основе предоставленного контекста. "
-    "Язык ответа: тот же, что и вопрос (kz/ru). "
-    "Каждый факт сопровождай цитатой [N], где N — номер источника из контекста."
+    "Ты — ЕНТ тьютор. Отвечай ТОЛЬКО на основе предоставленного контекста. "
+    "КРИТИЧНО: определи язык вопроса и отвечай СТРОГО на том же языке. "
+    "Если вопрос на казахском — весь ответ только на казахском. "
+    "Если вопрос на русском — весь ответ только на русском. "
+    "Каждый факт сопровождай цитатой [N], где N — номер источника."
 )
 
 # Regex to find citation markers like [1], [2], etc.
@@ -217,7 +219,8 @@ def format_sources(chunks: list[dict]) -> str:
 # ---------------------------------------------------------------------------
 
 def run_qa(answer: str, query: str, chunks: list[dict],
-           citations: list[int], lang: str) -> dict:
+           citations: list[int], lang: str,
+           query_type: str = "fact") -> dict:
     """Run the 5 QA checks and return results."""
     checks = {}
 
@@ -244,9 +247,10 @@ def run_qa(answer: str, query: str, chunks: list[dict],
     # Require at least 3 overlapping significant words to be considered grounded
     checks["grounded"] = len(overlap) >= 3
 
-    # Check 5: Answer length 50–500 words
+    # Check 5: Answer length — dynamic threshold based on query type
     word_count = len(answer.split())
-    checks["length_ok"] = 50 <= word_count <= 500
+    min_words = 5 if query_type == "fact" else 30
+    checks["length_ok"] = min_words <= word_count <= 500
 
     return checks
 
@@ -290,7 +294,7 @@ def generate(retrieval_path: Path = RETRIEVAL_PATH) -> None:
     answer_text = re.sub(r"\[FORMULA:\s*(.*?)\]", r"\1", answer_text)
 
     # ── 4.8 QA checks ────────────────────────────────────────────────────
-    checks = run_qa(answer_text, query, surviving, citations, data["lang"])
+    checks = run_qa(answer_text, query, surviving, citations, data["lang"], data.get("query_type", "fact"))
 
     # ── 4.9 Final output ──────────────────────────────────────────────────
     print("\n" + "=" * 60)
@@ -307,7 +311,7 @@ def generate(retrieval_path: Path = RETRIEVAL_PATH) -> None:
         "lang_match": "Answer language matches query language",
         "has_citation": "At least 1 citation [N] present",
         "grounded": "Answer does not contradict chunk content",
-        "length_ok": "Answer length: 50–500 words",
+        "length_ok": "Answer length: sufficient for query type",
     }
     for key, label in check_names.items():
         passed = checks.get(key, False)
