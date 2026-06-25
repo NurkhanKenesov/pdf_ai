@@ -6,7 +6,7 @@ Applies a set of rejection rules to enriched chunks and separates them into
 passed / rejected streams.
 
 Rejection rules (ANY match → reject):
-1. token_count < 50
+1. token_count < 50  (chunks with fewer than 50 tokens are too short to be useful)
 2. text is empty or whitespace-only
 3. >40 % non-Cyrillic / non-Latin / non-digit characters (OCR garbage)
 4. doc_id or source_pages missing or null
@@ -110,11 +110,11 @@ def qa_filter(doc_id: str) -> tuple[int, int]:
                 if not text or not text.strip():
                     reject_reason = "empty or whitespace-only text"
 
-            # Rule 1: token_count < 15
+            # Rule 1: token_count < 50  (too short to be useful as context)
             if reject_reason is None:
                 token_count = chunk.get("token_count", 0)
-                if token_count < 15:
-                    reject_reason = "token_count < 15"
+                if token_count < 50:
+                    reject_reason = "token_count < 50"
 
             # Rule 5: Repeated characters
             if reject_reason is None:

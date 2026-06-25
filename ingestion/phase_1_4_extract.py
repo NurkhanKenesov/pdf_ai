@@ -177,7 +177,7 @@ def _extract_table_text(pdf_path: str, page_num: int, doc_id: str) -> tuple[str,
                                 for cell in row
                             ]
                             lines.append("\t".join(cells))
-                    return "\n".join(lines), "fitz"
+                    return "\n".join(lines), "pdfplumber"
         except Exception:
             logger.warning("⚠  pdfplumber failed, falling back to fitz")
 

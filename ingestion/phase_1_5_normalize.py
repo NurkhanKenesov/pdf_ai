@@ -129,7 +129,7 @@ def normalize(doc_id: str) -> int:
 
     normalized: list[dict] = []
     for chunk in chunks:
-        text = chunk["text"]
+        text = chunk.get("text", "")
 
         if chunk.get("formula_present"):
             text = _replace_formulas(text)

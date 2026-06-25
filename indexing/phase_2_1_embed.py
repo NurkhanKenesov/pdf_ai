@@ -77,7 +77,7 @@ def embed(doc_id: str) -> int:
     with open(EMBEDDINGS_PATH, "w", encoding="utf-8") as fout:
         for start in range(0, total, BATCH_SIZE):
             batch = chunks[start:start + BATCH_SIZE]
-            texts = ["passage: " + chunk["text"] for chunk in batch]
+            texts = ["passage: " + chunk.get("text", "") for chunk in batch]
 
             embeddings = model.encode(texts, show_progress_bar=False)
             # embeddings is a numpy array of shape (batch_size, 1024)
