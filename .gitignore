@@ -1,0 +1,38 @@
+# Environment
+.env
+.env.*
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# PDF source files
+*.pdf
+*.PDF
+
+# Vector stores / indexes
+chroma_db/
+vector_store/
+data/qdrant_local/
+data/bm25_*.pkl
+data/bm25_*_meta.json
+data/*.jsonl
+data/*.json
+data/images/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
